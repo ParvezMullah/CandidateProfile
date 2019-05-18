@@ -1,6 +1,7 @@
 const express = require('express')
 const app = express()
-const candidatesDummy = require('./candidates')
+const XLSX = require('xlsx');
+const multer = require("multer");
 var excel = require('excel4node');
 Candidate = require('./models/candidate')
 var mongoose = require('mongoose')
@@ -18,14 +19,7 @@ app.get('/download', (req, res) => {
         res.download(generatedFile)
     });
 });
-app.get('/upload', (req, res) => {
-    res.send('Will Upload')
-})
-//PORT 
-const PORT = process.env.PORT || 3000
-app.listen(PORT, () => {
-    console.log(`listening on port ${PORT}`)
-});
+
 
 
 const createSheet = (candidatesData) => {
@@ -65,3 +59,93 @@ const createSheet = (candidatesData) => {
     console.log('written with name', filePath)
     return './Excel.xlsx';
 }
+
+
+
+var storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+      cb(null, './uploads');
+    },
+    filename: function (req, file, cb) {
+      var datetimestamp = Date.now();
+      cb(null, file.fieldname + '-' + datetimestamp + '.' + file.originalname.split('.')[file.originalname.split('.').length - 1]);
+    }
+  });
+  var upload = multer({ //multer settings
+    storage: storage
+  });
+  
+  function validate(req, res, next) {
+    if (!req.file) {
+      return res.send({
+        errors: {
+          message: 'file cant be empty'
+        }
+      });
+    }
+    next();
+  }
+  
+app.post('/upload', upload.single('file'), validate, (req, res) => {
+    // res.send('Will Upload')
+    const fileLocation = req.file.path;
+    // console.log(fileLocation); // logs uploads/file-1541675389394.xls
+  var workbook = XLSX.readFile(fileLocation);
+  var sheet_name_list = workbook.SheetNames;
+  const jsonFormat = XLSX.utils.sheet_to_json(workbook.Sheets[sheet_name_list[0]]);
+//   res.send(jsonFormat)
+  jsonFormat.forEach((candidateItem) => {
+      try{
+        const name_of_the_candidate = candidateItem['Name of the Candidate'],
+        postal_address = candidateItem['Postal Address'],
+        mobile_number = candidateItem['Mobile No.'],
+        date_of_birth = candidateItem['Date of Birth'],
+        email = candidateItem['Email'],
+        work_experience = candidateItem['Work Experience'],
+        resume_title = candidateItem['Resume Title'],
+        current_location = candidateItem['Current Location'],
+        preffered_location = candidateItem['Preferred Location'],
+        current_employer = candidateItem['Current Employer'],
+        current_designation = candidateItem['Current Designation'],
+        annual_salary = candidateItem['Annual Salary'],
+        education = candidateItem['Education']
+        if(name_of_the_candidate && email){
+            Candidate.find({email: email}, (err, candidateWithEmail) => {
+                if (candidateWithEmail.length == 0){
+                    console.log(`${email} will be inserted`)
+                    const newCandidate = new Candidate({
+                        name_of_the_candidate: name_of_the_candidate,
+                        postal_address, postal_address,
+                        mobile_number: mobile_number,
+                        date_of_birth: date_of_birth,
+                        email: email,
+                        work_experience: work_experience,
+                        resume_title: resume_title,
+                        current_location: current_location,
+                        preffered_location: preffered_location,
+                        current_employer: current_employer,
+                        current_designation: current_designation,
+                        annual_salary: annual_salary,
+                        education: education
+                    })
+                    newCandidate.save()
+                }
+                else{
+                    console.log(`${email} already exist`)
+                }
+            })
+        }
+      }
+      catch(exc){
+          console.log('handlinge exception', exc)
+      }
+  })
+  res.send('Processed')
+});
+
+
+  //PORT 
+const PORT = process.env.PORT || 3000
+app.listen(PORT, () => {
+    console.log(`listening on port ${PORT}`)
+});

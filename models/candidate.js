@@ -51,3 +51,4 @@ var Candidate = module.exports = mongoose.model('Candidate', candidateSchema)
 module.exports.getCandidates = (callback, limit) => {
     Candidate.find(callback).limit(limit)
 }
+
