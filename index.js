@@ -64,8 +64,7 @@ var storage = multer.diskStorage({
       cb(null, './uploads');
     },
     filename: function (req, file, cb) {
-      var datetimestamp = Date.now();
-      cb(null, file.fieldname + '-' + datetimestamp + '.' + file.originalname.split('.')[file.originalname.split('.').length - 1]);
+      cb(null, file.fieldname);
     }
   });
   var upload = multer({ //multer settings
@@ -89,11 +88,11 @@ app.post('/upload', upload.single('file'), validate, (req, res) => {
     // console.log(fileLocation); // logs uploads/file-1541675389394.xls
   var workbook = XLSX.readFile(fileLocation);
   var sheet_name_list = workbook.SheetNames;
-  const jsonFormat = XLSX.utils.sheet_to_json(workbook.Sheets[sheet_name_list[0]]);
+  const jsonFormat = XLSX.utils.sheet_to_json(workbook.Sheets[sheet_name_list[0]], {raw: false});
   //res.send(jsonFormat)
   jsonFormat.forEach((candidateItem) => {
       try{
-        console.log(candidateItem['Date of Birth'], typeof candidateItem['Date of Birth'])
+        console.log('DOB', candidateItem['Date of Birth'], typeof candidateItem['Date of Birth'])
         const name_of_the_candidate = candidateItem['Name of the Candidate'],
         postal_address = candidateItem['Postal Address'],
         mobile_number = candidateItem['Mobile No.'],
@@ -123,7 +122,7 @@ app.post('/upload', upload.single('file'), validate, (req, res) => {
                         current_employer: current_employer,
                         current_designation: current_designation,
                         annual_salary: annual_salary,
-                        education: education
+                        education: education && education.split(',')
                     })
                     newCandidate.save().then(result => {
                         //console.log('inserted', result)

@@ -41,7 +41,11 @@ var candidateSchema = mongoose.Schema({
         type: String
     },
     education: {
-        type: String
+        type: [
+            {
+                type: String
+            }
+        ]
     }
 })
 
