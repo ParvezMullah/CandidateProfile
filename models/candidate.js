@@ -19,7 +19,7 @@ var candidateSchema = mongoose.Schema({
         type: String,
         required: true
     },
-    work: {
+    work_experience: {
         type: String
     },
     resume_title: {

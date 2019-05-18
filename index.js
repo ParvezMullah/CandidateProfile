@@ -14,28 +14,27 @@ app.get('/download', (req, res) => {
         if (err) {
             throw err
         }
-        const generatedFile = createSheet(candidates);
-        console.log('written and will be send')
-        res.download(generatedFile)
+        createSheet(candidates, res);
     });
 });
 
 
 
-const createSheet = (candidatesData) => {
+const createSheet = (candidatesData, res) => {
     var workbook = new excel.Workbook();
 
     // Add Worksheets to the workbook
     var worksheet = workbook.addWorksheet('MySheet');
     //write header names
-    const headerNames = ["name of the candidate", "postal address", "mobile no", "Date of birth", "Email", "Work", "Resume Title", "Current Location", "Preferred Location", "Current Employer", "Current Designation", "Annual Salary", "Education"];
-    const columnNames = ["name_of_the_candidate", "postal_address", "mobile_number", "date_of_birth", "email", "work", "resume_title", "current_location", "preffered_location", "current_employer", "current_designation", "annual_salary", "education"]
+    const headerNames = ["name of the candidate", "postal address", "mobile no", "Date of birth", "Email", "Work Experience", "Resume Title", "Current Location", "Preferred Location", "Current Employer", "Current Designation", "Annual Salary", "Education"];
+    const columnNames = ["name_of_the_candidate", "postal_address", "mobile_number", "date_of_birth", "email", "work_experience", "resume_title", "current_location", "preffered_location", "current_employer", "current_designation", "annual_salary", "education"]
     headerNames.forEach((headerName, index) => {
         worksheet.cell(1, index + 1).string(headerName);
     })
 
     //Write data
     candidatesData.forEach((candidateData, i) => {
+        console.log(candidateData[columnNames[3]], typeof candidateData[columnNames[3]])
         worksheet.cell(i + 2, 1).string(candidateData[columnNames[0]])
         worksheet.cell(i + 2, 2).string(candidateData[columnNames[1]])
         worksheet.cell(i + 2, 3).number(candidateData[columnNames[2]])
@@ -54,10 +53,8 @@ const createSheet = (candidatesData) => {
 
     const filePath = workbook.write('Excel.xlsx', () => {
         console.log('written on disk');
-        return './Excel.xlsx'
+        res.download('./Excel.xlsx')
     });
-    console.log('written with name', filePath)
-    return './Excel.xlsx';
 }
 
 
@@ -93,9 +90,10 @@ app.post('/upload', upload.single('file'), validate, (req, res) => {
   var workbook = XLSX.readFile(fileLocation);
   var sheet_name_list = workbook.SheetNames;
   const jsonFormat = XLSX.utils.sheet_to_json(workbook.Sheets[sheet_name_list[0]]);
-//   res.send(jsonFormat)
+  //res.send(jsonFormat)
   jsonFormat.forEach((candidateItem) => {
       try{
+        console.log(candidateItem['Date of Birth'], typeof candidateItem['Date of Birth'])
         const name_of_the_candidate = candidateItem['Name of the Candidate'],
         postal_address = candidateItem['Postal Address'],
         mobile_number = candidateItem['Mobile No.'],
@@ -112,7 +110,6 @@ app.post('/upload', upload.single('file'), validate, (req, res) => {
         if(name_of_the_candidate && email){
             Candidate.find({email: email}, (err, candidateWithEmail) => {
                 if (candidateWithEmail.length == 0){
-                    console.log(`${email} will be inserted`)
                     const newCandidate = new Candidate({
                         name_of_the_candidate: name_of_the_candidate,
                         postal_address, postal_address,
@@ -128,7 +125,9 @@ app.post('/upload', upload.single('file'), validate, (req, res) => {
                         annual_salary: annual_salary,
                         education: education
                     })
-                    newCandidate.save()
+                    newCandidate.save().then(result => {
+                        //console.log('inserted', result)
+                    })
                 }
                 else{
                     console.log(`${email} already exist`)
