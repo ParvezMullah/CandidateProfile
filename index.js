@@ -90,9 +90,9 @@ app.post('/upload', upload.single('file'), validate, (req, res) => {
   var sheet_name_list = workbook.SheetNames;
   const jsonFormat = XLSX.utils.sheet_to_json(workbook.Sheets[sheet_name_list[0]], {raw: false});
   //res.send(jsonFormat)
-  jsonFormat.forEach((candidateItem) => {
+  jsonFormat.forEach((candidateItem, index) => {
       try{
-        console.log('DOB', candidateItem['Date of Birth'], typeof candidateItem['Date of Birth'])
+        console.log('index processing', index)
         const name_of_the_candidate = candidateItem['Name of the Candidate'],
         postal_address = candidateItem['Postal Address'],
         mobile_number = candidateItem['Mobile No.'],
@@ -125,13 +125,16 @@ app.post('/upload', upload.single('file'), validate, (req, res) => {
                         education: education && education.split(',')
                     })
                     newCandidate.save().then(result => {
-                        //console.log('inserted', result)
+                        console.log('inserted at', index)
                     })
                 }
                 else{
                     console.log(`${email} already exist`)
                 }
             })
+        }
+        else{
+            console.log('email or name is missing.')
         }
       }
       catch(exc){
