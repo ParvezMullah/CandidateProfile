@@ -30,7 +30,8 @@ exports.validate = function (req, res, next) {
   if (errorMessage) {
     return res.send({
       errors: {
-        message: errorMessage
+        message: errorMessage,
+        status: false
       }
     });
   }

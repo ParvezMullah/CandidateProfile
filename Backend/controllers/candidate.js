@@ -80,7 +80,10 @@ var db = mongoose.connection;
       console.log('finished');
     });
   
-    res.send('Processed')
+    const sendingResponse = {
+      status: true
+    }
+    res.send(sendingResponse)
   }
 
 
