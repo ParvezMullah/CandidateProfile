@@ -131,6 +131,12 @@ class CandidateProfile extends Component {
                         <p>Your records will be processed shortly</p>
                     </div> : null
                 }
+                <div className="instructions">
+                    <p>Note: </p>
+                    <p>- We support upto 1000 records in a file</p>
+                    <p>- Maximum support file size is 5MB</p>
+                    <p>- Name and Email are mandatory</p>
+                </div>
             </div>
         );
     }
