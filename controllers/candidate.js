@@ -13,7 +13,7 @@ var db = mongoose.connection;
     const fileLocation = req.file.path;
     var workbook = XLSX.readFile(fileLocation);
     var sheet_name_list = workbook.SheetNames;
-    const jsonFormat = XLSX.utils.sheet_to_json(workbook.Sheets[sheet_name_list[0]], {
+    let jsonFormat = XLSX.utils.sheet_to_json(workbook.Sheets[sheet_name_list[0]], {
       raw: false
     });
     if(jsonFormat.length > 1000){
