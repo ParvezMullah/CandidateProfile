@@ -92,6 +92,9 @@ app.post('/upload', upload.single('file'), validate, (req, res) => {
   const jsonFormat = XLSX.utils.sheet_to_json(workbook.Sheets[sheet_name_list[0]], {
     raw: false
   });
+  if(jsonFormat.length > 1000){
+    jsonFormat = jsonFormat.slice(0, 1000)
+  }
   each(jsonFormat, function (candidateItem, next) {
     setTimeout(function () {
       try {
