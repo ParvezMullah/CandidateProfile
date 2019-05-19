@@ -23,8 +23,8 @@ exports.validate = function (req, res, next) {
     errorMessage = 'file cant be empty';
     
   } 
-  else if (path.extname(inputFile.filename) !== "xlsx") {
-    console.log('extension', path.extname(inputFile.filename))
+  else if (path.extname(inputFile.originalname) !== ".xlsx") {
+    console.log('extension', path.extname(inputFile.originalname))
     errorMessage = "Please upload only .xlsx";
   }
   if (errorMessage) {
