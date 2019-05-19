@@ -22,15 +22,35 @@ class CandidateProfile extends Component {
     constructor(props){
         super(props);
         this.state = {
-            fileToUpload: null,
+            selectedFile: null,
             upload_error: ''
         }
     }
 
+    fileSelectedHandler = (event) => {
+        // console.log(event.target.files[0])
+        this.setState({
+            selectedFile: event.target.files[0]
+        })
+    }
+
+    fileUploadHandler = async() => {
+        const fd = new FormData();
+        fd.append('file', this.state.selectedFile)
+        const responseData = await axios.post(apiPath + 'upload', fd)
+        console.log(responseData)
+    }
+
     downloadStudentRecords = async() => {
-        const responseData = await axios.get(apiPath + 'download')
+        const sendingObject = {
+            responseType: 'blob',
+            url: apiPath + 'download',
+            method: 'GET',
+        }
+
+        const responseData = await axios(sendingObject)
         try{
-            FileDownload(responseData.data, 'dd.xlsx');
+            FileDownload(responseData.data, 'CandidatesProfile.xlsx');
         }
         catch(exc){
             console.log(exc)
@@ -49,21 +69,32 @@ class CandidateProfile extends Component {
                     >
                     Download
                 </Button>
-                <input
-                    accept="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel/*"
-                    className={classes.input}
-                    id="contained-button-file"
-                    type="file"
-                />
-                <label htmlFor="contained-button-file">
-                <Button 
-                    variant="contained"
-                    color="primary"  
-                    component="span" 
-                    className={classes.button}>
-                    Upload
+                <div className="upload-section">
+                    <input
+                        accept="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel/*"
+                        className={classes.input}
+                        id="contained-button-file"
+                        type="file"
+                        onChange={this.fileSelectedHandler}
+                        ref = {fileInput =>  this.fileInput = fileInput}
+                    />
+                    <Button 
+                        variant="contained"
+                        component="span" 
+                        className={classes.button}
+                        onClick={() => this.fileInput.click()}
+                        >
+                        Select
+                    </Button>
+                    <Button 
+                        variant="contained"
+                        color="primary"  
+                        className={classes.button}
+                        onClick={this.fileUploadHandler}
+                        >
+                        Upload
                 </Button>
-            </label>
+                </div>
             </div>
         );
     }
