@@ -4,6 +4,8 @@ import axios from 'axios';
 import PropTypes from 'prop-types';
 import { withStyles } from '@material-ui/core/styles';
 import Button from '@material-ui/core/Button';
+import FormHelperText from '@material-ui/core/FormHelperText';
+import Chip from '@material-ui/core/Chip';
 import FileDownload from 'js-file-download';
 const apiPath = "http://localhost:3000/candidate/";
 
@@ -15,6 +17,9 @@ const styles = theme => ({
     input: {
       display: 'none',
     },
+    helperText: {
+        margin: theme.spacing.unit,
+    },
   });
 
   
@@ -23,22 +28,39 @@ class CandidateProfile extends Component {
         super(props);
         this.state = {
             selectedFile: null,
-            upload_error: ''
+            upload_error: '',
+            success_message: false
         }
     }
 
     fileSelectedHandler = (event) => {
-        // console.log(event.target.files[0])
         this.setState({
-            selectedFile: event.target.files[0]
+            selectedFile: event.target.files[0],
+            success_message: false,
+            upload_error:""
         })
     }
 
     fileUploadHandler = async() => {
         const fd = new FormData();
         fd.append('file', this.state.selectedFile)
-        const responseData = await axios.post(apiPath + 'upload', fd)
+        const RecievingResponse = await axios.post(apiPath + 'upload', fd)
+        const responseData = RecievingResponse.data
         console.log(responseData)
+        if(responseData.status){
+            this.setState({
+                upload_error : "",
+                success_message: true,
+                selectedFile: null
+            })
+        }
+        else{
+            this.setState({
+                success_message: false,
+                upload_error: responseData.message,
+                selectedFile: null
+            })
+        }
     }
 
     downloadStudentRecords = async() => {
@@ -59,6 +81,7 @@ class CandidateProfile extends Component {
     }
     render() {
         const { classes } = this.props;
+        const {upload_error, success_message, selectedFile} = this.state;
         return (
             <div className="candidate-profile">
                 <Button 
@@ -95,6 +118,19 @@ class CandidateProfile extends Component {
                         Upload
                 </Button>
                 </div>
+                {
+                    selectedFile ?  <Chip label={selectedFile.name} className={classes.button1} /> : null
+                }
+                {
+                    upload_error ? <FormHelperText className={classes.helperText} error={upload_error}>{upload_error}</FormHelperText>: null
+                }
+                {
+                    success_message ? <div className="success-block">
+                        <p>Thank You</p>
+                        <p>File Upload Successfully</p>
+                        <p>Your records will be processed shortly</p>
+                    </div> : null
+                }
             </div>
         );
     }
